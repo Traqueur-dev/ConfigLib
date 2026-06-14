@@ -315,6 +315,18 @@ public class Structura {
     }
 
     /**
+     * Serializes all constants of a configurable enum to YAML. The resulting file is
+     * compatible with {@link #loadEnum(Path, Class)}.
+     *
+     * @param file      destination path
+     * @param enumClass enum type implementing {@link Loadable}
+     * @param <E>       configurable enum type
+     */
+    public static <E extends Enum<E> & Loadable> void writeEnum(Path file, Class<E> enumClass) {
+        requireWriter().writeEnum(file, enumClass);
+    }
+
+    /**
      * Builds a default instance of {@code configClass} from its {@code @Default*} annotations,
      * then writes it to {@code file}.
      *

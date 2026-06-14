@@ -33,7 +33,20 @@ public final class StructuraWriters {
         Objects.requireNonNull(file, "file cannot be null");
         Objects.requireNonNull(config, "config cannot be null");
 
-        String yaml = SERIALIZER.toYaml(config);
+        writeYaml(file, SERIALIZER.toYaml(config));
+    }
+
+    /**
+     * Serializes every constant and configurable field of {@code enumClass} to YAML.
+     * The generated file can be loaded back with {@code Structura.loadEnum(...)}.
+     */
+    public static <E extends Enum<E> & Loadable> void writeEnum(Path file, Class<E> enumClass) {
+        Objects.requireNonNull(file, "file cannot be null");
+        Objects.requireNonNull(enumClass, "enumClass cannot be null");
+        writeYaml(file, SERIALIZER.toYamlEnum(enumClass));
+    }
+
+    private static void writeYaml(Path file, String yaml) {
         try {
             Path parent = file.getParent();
             if (parent != null) Files.createDirectories(parent);

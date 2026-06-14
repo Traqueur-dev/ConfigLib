@@ -24,6 +24,14 @@ public interface StructuraWriter {
     void write(Path file, Loadable config);
 
     /**
+     * Serializes all constants of a configurable enum to YAML.
+     *
+     * @param file      destination path
+     * @param enumClass enum type implementing {@link Loadable}
+     */
+    <E extends Enum<E> & Loadable> void writeEnum(Path file, Class<E> enumClass);
+
+    /**
      * Builds a default instance of {@code configClass} from its {@code @Default*}
      * annotations, then writes it to {@code file}.
      *

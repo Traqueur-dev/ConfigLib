@@ -101,6 +101,25 @@ class StructuraWritersTest {
         assertFalse(content.contains("never-default:"), "optional field with no default must be absent");
     }
 
+    @Test
+    void configurableEnumRoundTrip() throws Exception {
+        Path file = tempDir.resolve("databases.yml");
+
+        Structura.writeEnum(file, ConfigurableDatabase.class);
+        String content = Files.readString(file);
+
+        assertTrue(content.contains("mysql:"));
+        assertTrue(content.contains("postgresql:"));
+        assertTrue(content.contains("default-port: 3306"));
+        assertFalse(content.contains("description: null"));
+
+        Structura.loadEnum(file, ConfigurableDatabase.class);
+        assertEquals("mysql.Driver", ConfigurableDatabase.MYSQL.driver());
+        assertEquals(5432, ConfigurableDatabase.POSTGRESQL.defaultPort());
+        assertEquals("database-host", ConfigurableDatabase.POSTGRESQL.description());
+        assertEquals("true", ConfigurableDatabase.MYSQL.properties().get("ssl"));
+    }
+
     // ── Polymorphic round-trip ────────────────────────────────────────────────
 
     @Test

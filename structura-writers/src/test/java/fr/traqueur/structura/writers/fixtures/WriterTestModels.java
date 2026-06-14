@@ -257,6 +257,30 @@ public final class WriterTestModels {
         Environment                        env
     ) implements Loadable {}
 
+    public enum ConfigurableDatabase implements Loadable {
+        MYSQL("mysql.Driver", 3306, null, Map.of("ssl", "true")),
+        POSTGRESQL("postgres.Driver", 5432, "database-host", Map.of());
+
+        private String driver;
+        private int defaultPort;
+        @Options(optional = true)
+        private String description;
+        private Map<String, String> properties;
+
+        ConfigurableDatabase(String driver, int defaultPort, String description,
+                             Map<String, String> properties) {
+            this.driver = driver;
+            this.defaultPort = defaultPort;
+            this.description = description;
+            this.properties = properties;
+        }
+
+        public String driver() { return driver; }
+        public int defaultPort() { return defaultPort; }
+        public String description() { return description; }
+        public Map<String, String> properties() { return properties; }
+    }
+
     // =========================================================================
     // LocalDate / LocalDateTime serialization
     // =========================================================================

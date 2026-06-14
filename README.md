@@ -772,6 +772,9 @@ postgresql:
 // Populate enum constants
 Structura.parseEnum(yamlContent, DatabaseType.class);
 
+// Save the current values of every enum constant
+Structura.writeEnum(Path.of("database-types.yml"), DatabaseType.class);
+
 // Use populated enum
 String mysqlDriver = DatabaseType.MYSQL.driver;
 int postgresPort = DatabaseType.POSTGRESQL.defaultPort;

@@ -12,6 +12,8 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
@@ -67,6 +69,44 @@ public class LoadableSerializer {
     public String toYaml(Loadable config) {
         Objects.requireNonNull(config, "config cannot be null");
         return yaml.dump(toMap(config));
+    }
+
+    /** Serializes all constants of a configurable enum to a block-style YAML string. */
+    public <E extends Enum<E> & Loadable> String toYamlEnum(Class<E> enumClass) {
+        Objects.requireNonNull(enumClass, "enumClass cannot be null");
+        if (!enumClass.isEnum()) {
+            throw new StructuraWriterException("Cannot serialize non-enum type: " + enumClass.getName());
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (E constant : enumClass.getEnumConstants()) {
+            String key = fieldMapper.convertSnakeCaseToKebabCase(constant.name());
+            result.put(key, toEnumFieldsMap(constant));
+        }
+        return yaml.dump(result);
+    }
+
+    private Map<String, Object> toEnumFieldsMap(Enum<?> constant) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (Field field : constant.getClass().getDeclaredFields()) {
+            if (field.isSynthetic() || field.isEnumConstant() || Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+
+            try {
+                field.setAccessible(true);
+                Object value = field.get(constant);
+                Options options = field.getAnnotation(Options.class);
+                if (value == null && options != null && options.optional()) {
+                    continue;
+                }
+                result.put(fieldMapper.getFieldNameFromField(field), serializeValue(value, field.getGenericType()));
+            } catch (IllegalAccessException e) {
+                throw new StructuraWriterException(
+                        "Cannot read enum field: " + field.getName() + " of constant: " + constant.name(), e);
+            }
+        }
+        return result;
     }
 
     // -------------------------------------------------------------------------

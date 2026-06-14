@@ -26,6 +26,11 @@ public final class YamlStructuraWriter implements StructuraWriter {
     }
 
     @Override
+    public <E extends Enum<E> & Loadable> void writeEnum(Path file, Class<E> enumClass) {
+        StructuraWriters.writeEnum(file, enumClass);
+    }
+
+    @Override
     public <T extends Loadable> void saveDefault(Path file, Class<T> configClass) {
         StructuraWriters.saveDefault(file, configClass);
     }
