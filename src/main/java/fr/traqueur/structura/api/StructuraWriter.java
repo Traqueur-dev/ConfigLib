@@ -16,6 +16,27 @@ import java.nio.file.Path;
 public interface StructuraWriter {
 
     /**
+     * Serializes all constants of a configurable enum to YAML.
+     *
+     * @param file      destination path
+     * @param enumClass enum type implementing {@link Loadable}
+     */
+    <E extends Enum<E> & Loadable> void writeEnum(Path file, Class<E> enumClass);
+
+    /**
+     * Serializes all constants of a configurable enum to YAML, filling any
+     * {@code null} field from its {@code @Default*} annotation before writing.
+     *
+     * <p>The enum counterpart of {@link #saveDefault}: produces a complete,
+     * editable default template rather than the enum's current field state.</p>
+     *
+     * @param file      destination path
+     * @param enumClass enum type implementing {@link Loadable}
+     * @param <E>       a configurable enum type implementing {@link Loadable}
+     */
+    <E extends Enum<E> & Loadable> void saveDefaultEnum(Path file, Class<E> enumClass);
+
+    /**
      * Serializes {@code config} to YAML and writes it to {@code file}.
      *
      * @param file   destination path (created or overwritten)

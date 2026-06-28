@@ -36,14 +36,7 @@ public final class YamlStructuraWriter implements StructuraWriter {
         Objects.requireNonNull(file, "file cannot be null");
         Objects.requireNonNull(config, "config cannot be null");
 
-        String yaml = serializer.toYaml(config);
-        try {
-            Path parent = file.getParent();
-            if (parent != null) Files.createDirectories(parent);
-            Files.writeString(file, yaml, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException e) {
-            throw new StructuraWriterException("Failed to write configuration to: " + file.toAbsolutePath(), e);
-        }
+        writeYaml(file, serializer.toYaml(config));
     }
 
     @Override
@@ -53,5 +46,28 @@ public final class YamlStructuraWriter implements StructuraWriter {
 
         T defaultInstance = defaultFactory.createDefault(configClass);
         write(file, defaultInstance);
+    }
+
+    public <E extends Enum<E> & Loadable> void writeEnum(Path file, Class<E> enumClass) {
+        Objects.requireNonNull(file, "file cannot be null");
+        Objects.requireNonNull(enumClass, "enumClass cannot be null");
+        writeYaml(file, serializer.toYamlEnum(enumClass));
+    }
+
+    @Override
+    public <E extends Enum<E> & Loadable> void saveDefaultEnum(Path file, Class<E> enumClass) {
+        Objects.requireNonNull(file, "file cannot be null");
+        Objects.requireNonNull(enumClass, "enumClass cannot be null");
+        writeYaml(file, serializer.toYamlEnumDefault(enumClass));
+    }
+
+    private void writeYaml(Path file, String yaml) {
+        try {
+            Path parent = file.getParent();
+            if (parent != null) Files.createDirectories(parent);
+            Files.writeString(file, yaml, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            throw new StructuraWriterException("Failed to write configuration to: " + file.toAbsolutePath(), e);
+        }
     }
 }

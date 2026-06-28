@@ -728,11 +728,11 @@ try {
 }
 ```
 
-#### Using `@DefaultString` with `Reference<T>`
+#### Using `@DefaultReference` with `Reference<T>`
 
 ```java
 public record GameConfig(
-    @DefaultString("default-arena") Reference<Arena> arena,
+    @DefaultReference(type=Arena.class, key="default-arena") Reference<Arena> arena,
     int maxPlayers
 ) implements Loadable {}
 ```
@@ -771,6 +771,10 @@ AppConfig updated = new AppConfig(
 );
 
 Structura.write(path, updated);
+
+// Save the current values of every enum constant
+Structura.writeEnum(Path.of("database-types.yml"), DatabaseType.class);
+
 ```
 
 #### Generating default config files
@@ -790,6 +794,14 @@ if (!Files.exists(configFile)) {
 > StorageConfig defaultStorage = new StorageConfig(new LocalBackend("./data", 100));
 > Structura.write(storageFile, defaultStorage);
 > ```
+
+For configurable enums, `Structura.saveDefaultEnum(Path, Class)` is the enum counterpart: it serializes every constant like `writeEnum()`, but fills any `null` field from its `@Default*` annotation first — producing a complete, editable default template.
+
+```java
+if (!Files.exists(databasesFile)) {
+    Structura.saveDefaultEnum(databasesFile, DatabaseType.class);
+}
+```
 
 #### What the serializer handles
 
@@ -1053,6 +1065,12 @@ void write(Path file, Loadable config)
 
 // Build a default instance from @Default* annotations and write it
 <T extends Loadable> void saveDefault(Path file, Class<T> configClass)
+
+// Serialize every constant of a configurable enum to YAML
+<E extends Enum<E> & Loadable> void writeEnum(Path file, Class<E> enumClass)
+
+// Serialize every enum constant, filling null fields from @Default* annotations
+<E extends Enum<E> & Loadable> void saveDefaultEnum(Path file, Class<E> enumClass)
 ```
 
 ### Polymorphic Registry API

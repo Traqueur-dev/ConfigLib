@@ -172,6 +172,29 @@ public class Structura {
         PROCESSOR.parseEnum(yamlContent, enumClass);
     }
 
+    public static <E extends Enum<E> & Loadable> void writeEnum(Path file, Class<E> enumClass) {
+        requireWriter().writeEnum(file, enumClass);
+    }
+
+    /**
+     * Serializes all constants of a configurable enum to YAML, filling any
+     * {@code null} field from its {@code @Default*} annotation before writing.
+     *
+     * <p>The enum counterpart of {@link #saveDefault}: produces a complete,
+     * editable default template rather than the enum's current field state.</p>
+     *
+     * <p>Requires the {@code structura-writers} module to be present on the classpath.
+     * Throws {@link StructuraException} if the module is absent.</p>
+     *
+     * @param file      destination path
+     * @param enumClass enum type implementing {@link Loadable}
+     * @param <E>       a configurable enum type implementing {@link Loadable}
+     * @throws StructuraException if the writers module is absent or the write fails
+     */
+    public static <E extends Enum<E> & Loadable> void saveDefaultEnum(Path file, Class<E> enumClass) {
+        requireWriter().saveDefaultEnum(file, enumClass);
+    }
+
     /**
      * Loads an enum of type E from a YAML file.
      *
