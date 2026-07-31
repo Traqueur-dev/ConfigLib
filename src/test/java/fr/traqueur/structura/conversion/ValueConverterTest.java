@@ -47,6 +47,7 @@ class ValueConverterTest {
     public Set<Integer> getIntegerSet() { return null; }
     public Map<String, String> getStringStringMap() { return null; }
     public Map<String, Integer> getStringIntegerMap() { return null; }
+    public Map<String, Map<String, SimpleRecord>> getNestedRecordMap() { return null; }
     public List<TestDatabaseConfig> getDatabaseConfigList() { return null; }
     public List<SimpleKeyRecord> getSimpleKeyRecordList() { return null; }
 
@@ -256,6 +257,36 @@ class ValueConverterTest {
             );
 
             assertEquals(Map.of("count", 42, "total", 100, "average", 50), result);
+        }
+
+        @Test
+        @DisplayName("Should convert nested maps whose innermost value is a Loadable record")
+        void shouldConvertNestedMapOfRecords() throws Exception {
+            // Regression: Map<String, Map<String, SimpleRecord>> — the outer map values used to be
+            // converted with only the raw Map class, dropping the SimpleRecord type parameter, so the
+            // innermost entries stayed raw LinkedHashMaps (ClassCastException at use site).
+            Type nestedMapType = ValueConverterTest.class.getMethod("getNestedRecordMap").getGenericReturnType();
+            Map<String, Object> input = Map.of(
+                    "WEEK", Map.of(
+                            "1", Map.of("name", "first", "value", 10),
+                            "2", Map.of("name", "second", "value", 20)
+                    ),
+                    "FOREVER", Map.of(
+                            "1", Map.of("name", "all-time", "value", 99)
+                    )
+            );
+
+            @SuppressWarnings("unchecked")
+            Map<String, Map<String, SimpleRecord>> result =
+                    (Map<String, Map<String, SimpleRecord>>) valueConverter.convert(
+                            input, nestedMapType, Map.class, "");
+
+            SimpleRecord week1 = result.get("WEEK").get("1");
+            assertInstanceOf(SimpleRecord.class, week1);
+            assertEquals("first", week1.name());
+            assertEquals(10, week1.value());
+            assertEquals(20, result.get("WEEK").get("2").value());
+            assertEquals("all-time", result.get("FOREVER").get("1").name());
         }
 
         @Test

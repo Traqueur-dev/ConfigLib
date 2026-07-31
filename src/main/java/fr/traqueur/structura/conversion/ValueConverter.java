@@ -255,7 +255,7 @@ public class ValueConverter {
             // Use the map key as discriminator for each value
             return sourceMap.entrySet().stream()
                     .collect(Collectors.toMap(
-                            entry -> convert(entry.getKey(), keyType, prefix),
+                            entry -> convert(entry.getKey(), typeArgs[0], keyType, prefix),
                             entry -> {
                                 String discriminatorValue = entry.getKey();
                                 Object itemValue = entry.getValue();
@@ -265,15 +265,16 @@ public class ValueConverter {
                                     itemValue, discriminatorValue, valueType, prefix
                                 );
 
-                                return convert(enrichedValue, valueType, prefix);
+                                return convert(enrichedValue, typeArgs[1], valueType, prefix);
                             }
                     ));
         } else {
-            // Normal map conversion
+            // Normal map conversion — thread the full generic Type so nested generics
+            // (e.g. Map<String, Map<String, Loadable>>) resolve their innermost value type.
             return sourceMap.entrySet().stream()
                     .collect(Collectors.toMap(
-                            entry -> convert(entry.getKey(), keyType, prefix),
-                            entry -> convert(entry.getValue(), valueType, prefix)
+                            entry -> convert(entry.getKey(), typeArgs[0], keyType, prefix),
+                            entry -> convert(entry.getValue(), typeArgs[1], valueType, prefix)
                     ));
         }
     }
